@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I4EQ Performance Review System</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #1a202c;
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 16px;
+        }
+
+        .sign-in-section {
+            background: white;
+            border-radius: 16px;
+            padding: 48px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .sign-in-button {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sign-in-button:hover {
+            background: #357ae8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+        }
+
+        .main-panel {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 14px;
+        }
+
+        .form-group select {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .score-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .score-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 12px;
+            color: white;
+        }
+
+        .score-card h3 {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+
+        .score-card .score {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .score-card .comparison {
+            font-size: 12px;
+            margin-top: 4px;
+            opacity: 0.8;
+        }
+
+        .ratings-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 32px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .ratings-table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .ratings-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .ratings-table tr:hover {
+            background: #f7fafc;
+        }
+
+        .comment-section {
+            margin-top: 32px;
+        }
+
+        .comment-section h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 16px;
+        }
+
+        .comment-category {
+            margin-bottom: 24px;
+        }
+
+        .comment-category h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 12px;
+        }
+
+        .comment-item {
+            background: #f7fafc;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .comment-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .comment-source {
+            font-size: 12px;
+            font-weight: 600;
+            color: #667eea;
+            text-transform: uppercase;
+        }
+
+        .comment-text {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-left: 32px;
+        }
+
+        .generate-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 48px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin-top: 24px;
+        }
+
+        .generate-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        .generate-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status-message {
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-error {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .status-info {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+
+        .alert {
+            background: #fef5e7;
+            border-left: 4px solid #f39c12;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .alert h4 {
+            color: #b7791f;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .alert p {
+            color: #7d6608;
+            line-height: 1.6;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .score-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // =====================================================
+        // CONFIGURATION - YOUR SPECIFIC GOOGLE SHEET
+        // =====================================================
+        const CONFIG = {
+            // TODO: Replace with your Google Client ID from Google Cloud Console
+            GOOGLE_CLIENT_ID: 'YOUR_CLIENT_ID_HERE.apps.googleusercontent.com',
+            
+            // Your Spreadsheet ID (already configured)
+            SPREADSHEET_ID: '1W7492PcovZA3e0xjYBSBO8wiC87Ah6Z7HmkeJLiClRE',
+            
+            // Your exact tab names
+            SHEET_NAMES: {
+                SELF_REVIEW: 'Self Review',
+                MANAGER_REVIEW: 'Manager Review',
+                PEER_REVIEW: '360 Peer Review'
+            },
+            
+            SCOPES: 'https://www.googleapis.com/auth/spreadsheets.readonly',
+            DISCOVERY_DOCS: ['https://sheets.googleapis.com/$discovery/rest?version=v4']
+        };
+
+        // Column mapping for your specific sheets
+        const COLUMN_MAP = {
+            SELF_REVIEW: {
+                timestamp: 0,           // A
+                employeeName: 1,        // B (Employee Name)
+                role: 2,                // C (Role/Title)
+                reviewYear: 3,          // D (Review Year)
+                // Ratings (E-J) - columns 4-9
+                rating1: 4,             // E: Met expectations
+                rating2: 5,             // F: High quality work
+                rating3: 6,             // G: Managed workload
+                rating4: 7,             // H: Team culture
+                rating5: 8,             // I: Initiative
+                rating6: 9,             // J: Communication
+                // Open-ended questions (K-P) - columns 10-15
+                accomplishments: 10,    // K
+                greatestImpact: 11,     // L
+                challenges: 12,         // M
+                strengths: 13,          // N
+                developmentAreas: 14,   // O
+                supportNeeded: 15       // P
+            },
+            MANAGER_REVIEW: {
+                timestamp: 0,           // A
+                managerName: 1,         // B (Your Name)
+                employeeName: 2,        // C (Employee you are reviewing)
+                reviewYear: 3,          // D
+                // Ratings (E-N) - columns 4-13
+                rating1: 4,             // E: High quality work
+                rating2: 5,             // F: Problem-solving
+                rating3: 6,             // G: Communication
+                rating4: 7,             // H: Project ownership
+                rating5: 8,             // I: Relationships
+                rating6: 9,             // J: Values alignment
+                rating7: 10,            // K: Meets expectations
+                rating8: 11,            // L: Adapts well
+                rating9: 12,            // M: Professionalism
+                overallRating: 13,      // N: Overall Performance Rating
+                // Open-ended questions (O-S) - columns 14-18
+                strengths: 14,          // O
+                greatestImpact: 15,     // P
+                areasForImprovement: 16, // Q
+                supportNeeded: 17,      // R
+                additionalComments: 18  // S
+            },
+            PEER_REVIEW: {
+                timestamp: 0,           // A
+                reviewerName: 1,        // B (Your Name)
+                employeeName: 2,        // C (Person you are giving feedback on)
+                reviewYear: 3,          // D
+                proximity: 4,           // E (How closely did you work)
+                // Ratings (F-J) - columns 5-9
+                rating1: 5,             // F: Communicates effectively
+                rating2: 6,             // G: Collaboration
+                rating3: 7,             // H: High quality work
+                rating4: 8,             // I: Reliable
+                rating5: 9,             // J: Values aligned
+                // Open-ended questions (K-M) - columns 10-12
+                whatTheyDoWell: 10,     // K
+                improvement: 11,        // L
+                additionalComments: 12  // M
+            }
+        };
+
+        // =====================================================
+        // GOOGLE SHEETS API FUNCTIONS
+        // =====================================================
+        
+        const initializeGoogleAPI = () => {
+            return new Promise((resolve, reject) => {
+                gapi.load('client:auth2', async () => {
+                    try {
+                        await gapi.client.init({
+                            clientId: CONFIG.GOOGLE_CLIENT_ID,
+                            discoveryDocs: CONFIG.DISCOVERY_DOCS,
+                            scope: CONFIG.SCOPES
+                        });
+                        resolve();
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+            });
+        };
+
+        const signIn = async () => {
+            try {
+                await gapi.auth2.getAuthInstance().signIn();
+                return true;
+            } catch (error) {
+                console.error('Sign-in error:', error);
+                return false;
+            }
+        };
+
+        const signOut = () => {
+            gapi.auth2.getAuthInstance().signOut();
+        };
+
+        const isSignedIn = () => {
+            return gapi.auth2?.getAuthInstance()?.isSignedIn?.get() || false;
+        };
+
+        const fetchSheetData = async (sheetName) => {
+            try {
+                const response = await gapi.client.sheets.spreadsheets.values.get({
+                    spreadsheetId: CONFIG.SPREADSHEET_ID,
+                    range: `${sheetName}!A:Z`
+                });
+                return response.result.values || [];
+            } catch (error) {
+                console.error(`Error fetching ${sheetName}:`, error);
+                throw error;
+            }
+        };
+
+        // =====================================================
+        // DATA PROCESSING FUNCTIONS
+        // =====================================================
+
+        const parseReviewData = (rawData, columnMap, sheetType) => {
+            if (!rawData || rawData.length < 2) return [];
+            
+            const [headers, ...rows] = rawData;
+            
+            return rows.map(row => {
+                const data = {
+                    employeeName: row[columnMap.employeeName]?.trim() || '',
+                    reviewYear: row[columnMap.reviewYear]?.trim() || '',
+                };
+
+                if (sheetType === 'SELF_REVIEW') {
+                    data.role = row[columnMap.role] || '';
+                    data.ratings = {
+                        metExpectations: parseFloat(row[columnMap.rating1]) || 0,
+                        qualityWork: parseFloat(row[columnMap.rating2]) || 0,
+                        managedWorkload: parseFloat(row[columnMap.rating3]) || 0,
+                        teamCulture: parseFloat(row[columnMap.rating4]) || 0,
+                        initiative: parseFloat(row[columnMap.rating5]) || 0,
+                        communication: parseFloat(row[columnMap.rating6]) || 0
+                    };
+                    data.accomplishments = row[columnMap.accomplishments] || '';
+                    data.greatestImpact = row[columnMap.greatestImpact] || '';
+                    data.challenges = row[columnMap.challenges] || '';
+                    data.strengths = row[columnMap.strengths] || '';
+                    data.developmentAreas = row[columnMap.developmentAreas] || '';
+                    data.supportNeeded = row[columnMap.supportNeeded] || '';
+                } else if (sheetType === 'MANAGER_REVIEW') {
+                    data.managerName = row[columnMap.managerName] || '';
+                    data.ratings = {
+                        qualityWork: parseFloat(row[columnMap.rating1]) || 0,
+                        problemSolving: parseFloat(row[columnMap.rating2]) || 0,
+                        communication: parseFloat(row[columnMap.rating3]) || 0,
+                        projectOwnership: parseFloat(row[columnMap.rating4]) || 0,
+                        relationships: parseFloat(row[columnMap.rating5]) || 0,
+                        valuesAlignment: parseFloat(row[columnMap.rating6]) || 0,
+                        meetsExpectations: parseFloat(row[columnMap.rating7]) || 0,
+                        adaptsWell: parseFloat(row[columnMap.rating8]) || 0,
+                        professionalism: parseFloat(row[columnMap.rating9]) || 0
+                    };
+                    data.overallRating = parseFloat(row[columnMap.overallRating]) || 0;
+                    data.strengths = row[columnMap.strengths] || '';
+                    data.greatestImpact = row[columnMap.greatestImpact] || '';
+                    data.areasForImprovement = row[columnMap.areasForImprovement] || '';
+                    data.supportNeeded = row[columnMap.supportNeeded] || '';
+                    data.additionalComments = row[columnMap.additionalComments] || '';
+                } else if (sheetType === 'PEER_REVIEW') {
+                    data.reviewerName = row[columnMap.reviewerName] || '';
+                    data.proximity = row[columnMap.proximity] || '';
+                    data.ratings = {
+                        communication: parseFloat(row[columnMap.rating1]) || 0,
+                        collaboration: parseFloat(row[columnMap.rating2]) || 0,
+                        qualityWork: parseFloat(row[columnMap.rating3]) || 0,
+                        reliable: parseFloat(row[columnMap.rating4]) || 0,
+                        valuesAligned: parseFloat(row[columnMap.rating5]) || 0
+                    };
+                    data.whatTheyDoWell = row[columnMap.whatTheyDoWell] || '';
+                    data.improvement = row[columnMap.improvement] || '';
+                    data.additionalComments = row[columnMap.additionalComments] || '';
+                }
+
+                return data;
+            });
+        };
+
+        const aggregateReviews = (selfReview, managerReview, peerReviews) => {
+            if (!selfReview || !managerReview) return null;
+
+            // Calculate average of self ratings
+            const selfRatingsArray = Object.values(selfReview.ratings);
+            const selfAvg = selfRatingsArray.reduce((a, b) => a + b, 0) / selfRatingsArray.length;
+
+            // For manager, use overall rating or calculate average
+            const managerAvg = managerReview.overallRating || 
+                (Object.values(managerReview.ratings).reduce((a, b) => a + b, 0) / Object.values(managerReview.ratings).length);
+
+            // Calculate average peer ratings
+            const avgPeerRatings = {
+                communication: 0,
+                collaboration: 0,
+                qualityWork: 0,
+                reliable: 0,
+                valuesAligned: 0
+            };
+
+            if (peerReviews && peerReviews.length > 0) {
+                Object.keys(avgPeerRatings).forEach(key => {
+                    const sum = peerReviews.reduce((acc, peer) => acc + (peer.ratings[key] || 0), 0);
+                    avgPeerRatings[key] = sum / peerReviews.length;
+                });
+            }
+
+            const gap = Math.abs(selfAvg - managerAvg);
+            const selfAwarenessScore = Math.max(0, 100 - (gap * 20));
+
+            return {
+                self: selfReview,
+                manager: managerReview,
+                peers: peerReviews,
+                avgPeerRatings,
+                selfAvg,
+                managerAvg,
+                selfAwarenessScore,
+                gap: selfAvg - managerAvg
+            };
+        };
+
+        // =====================================================
+        // DOCUMENT GENERATION
+        // =====================================================
+
+        const generateDocument = async (employeeName, reviewYear, aggregatedData, selectedComments) => {
+            const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, 
+                    AlignmentType, WidthType, BorderStyle, HeadingLevel } = docx;
+
+            const sections = [];
+
+            // Title and Overview
+            sections.push(
+                new Paragraph({
+                    heading: HeadingLevel.HEADING_1,
+                    children: [new TextRun(`Performance Review: ${employeeName}`)]
+                }),
+                new Paragraph({
+                    children: [new TextRun(`Review Year: ${reviewYear}`)]
+                }),
+                new Paragraph({
+                    children: [new TextRun({ text: `Generated: ${new Date().toLocaleDateString()}`, italics: true })]
+                }),
+                new Paragraph({ text: "" })
+            );
+
+            // Self-Awareness Analysis
+            sections.push(
+                new Paragraph({
+                    heading: HeadingLevel.HEADING_2,
+                    children: [new TextRun("Self-Awareness Analysis")]
+                }),
+                new Paragraph({
+                    children: [new TextRun(`Self-Awareness Score: ${aggregatedData.selfAwarenessScore.toFixed(0)}/100`)]
+                }),
+                new Paragraph({
+                    children: [new TextRun(`Self Average Rating: ${aggregatedData.selfAvg.toFixed(2)}`)]
+                }),
+                new Paragraph({
+                    children: [new TextRun(`Manager Overall Rating: ${aggregatedData.managerAvg.toFixed(2)}`)]
+                }),
+                new Paragraph({ text: "" })
+            );
+
+            // Selected Comments
+            if (selectedComments && selectedComments.length > 0) {
+                sections.push(
+                    new Paragraph({
+                        heading: HeadingLevel.HEADING_2,
+                        children: [new TextRun("Feedback Summary")]
+                    })
+                );
+
+                selectedComments.forEach(comment => {
+                    sections.push(
+                        new Paragraph({
+                            children: [new TextRun({ text: comment.source, bold: true })]
+                        }),
+                        new Paragraph({
+                            children: [new TextRun(comment.text)]
+                        }),
+                        new Paragraph({ text: "" })
+                    );
+                });
+            }
+
+            const doc = new Document({
+                sections: [{
+                    properties: {
+                        page: {
+                            size: { width: 12240, height: 15840 },
+                            margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 }
+                        }
+                    },
+                    children: sections
+                }]
+            });
+
+            const blob = await Packer.toBlob(doc);
+            saveAs(blob, `Performance_Review_${employeeName.replace(/\s+/g, '_')}_${reviewYear}.docx`);
+        };
+
+        // =====================================================
+        // MAIN APP COMPONENT
+        // =====================================================
+
+        function App() {
+            const [isSignedIn, setIsSignedIn] = useState(false);
+            const [isInitialized, setIsInitialized] = useState(false);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+            const [statusMessage, setStatusMessage] = useState(null);
+
+            const [reviewYears, setReviewYears] = useState([]);
+            const [employees, setEmployees] = useState([]);
+            const [selectedYear, setSelectedYear] = useState('');
+            const [selectedEmployee, setSelectedEmployee] = useState('');
+
+            const [aggregatedData, setAggregatedData] = useState(null);
+            const [selectedComments, setSelectedComments] = useState([]);
+
+            const [allSelfReviews, setAllSelfReviews] = useState([]);
+            const [allManagerReviews, setAllManagerReviews] = useState([]);
+            const [allPeerReviews, setAllPeerReviews] = useState([]);
+
+            // Initialize Google API
+            useEffect(() => {
+                initializeGoogleAPI()
+                    .then(() => {
+                        setIsInitialized(true);
+                        setIsSignedIn(isSignedIn());
+                        setLoading(false);
+                    })
+                    .catch(err => {
+                        setError('Failed to initialize Google API. Check your Client ID configuration.');
+                        setLoading(false);
+                    });
+            }, []);
+
+            // Handle sign-in
+            const handleSignIn = async () => {
+                setLoading(true);
+                const success = await signIn();
+                if (success) {
+                    setIsSignedIn(true);
+                    loadAllData();
+                } else {
+                    setError('Sign-in failed. Please try again.');
+                    setLoading(false);
+                }
+            };
+
+            const handleSignOut = () => {
+                signOut();
+                setIsSignedIn(false);
+                setAllSelfReviews([]);
+                setAllManagerReviews([]);
+                setAllPeerReviews([]);
+                setReviewYears([]);
+                setEmployees([]);
+                setAggregatedData(null);
+            };
+
+            // Load all review data
+            const loadAllData = async () => {
+                try {
+                    setLoading(true);
+                    setError(null);
+
+                    const [selfData, managerData, peerData] = await Promise.all([
+                        fetchSheetData(CONFIG.SHEET_NAMES.SELF_REVIEW),
+                        fetchSheetData(CONFIG.SHEET_NAMES.MANAGER_REVIEW),
+                        fetchSheetData(CONFIG.SHEET_NAMES.PEER_REVIEW)
+                    ]);
+
+                    const parsedSelf = parseReviewData(selfData, COLUMN_MAP.SELF_REVIEW, 'SELF_REVIEW');
+                    const parsedManager = parseReviewData(managerData, COLUMN_MAP.MANAGER_REVIEW, 'MANAGER_REVIEW');
+                    const parsedPeer = parseReviewData(peerData, COLUMN_MAP.PEER_REVIEW, 'PEER_REVIEW');
+
+                    setAllSelfReviews(parsedSelf);
+                    setAllManagerReviews(parsedManager);
+                    setAllPeerReviews(parsedPeer);
+
+                    // Extract unique review years
+                    const yearsSet = new Set();
+                    [...parsedSelf, ...parsedManager, ...parsedPeer].forEach(review => {
+                        if (review.reviewYear) yearsSet.add(review.reviewYear);
+                    });
+                    setReviewYears(Array.from(yearsSet).sort().reverse());
+
+                    setLoading(false);
+                    setStatusMessage({ type: 'success', text: 'Data loaded successfully!' });
+                    setTimeout(() => setStatusMessage(null), 3000);
+                } catch (err) {
+                    console.error('Error loading data:', err);
+                    setError('Failed to load data from Google Sheets. Check permissions and sheet structure.');
+                    setLoading(false);
+                }
+            };
+
+            // When year is selected, update employee list
+            useEffect(() => {
+                if (selectedYear) {
+                    const employeesInYear = new Set();
+                    allSelfReviews
+                        .filter(r => r.reviewYear === selectedYear)
+                        .forEach(r => employeesInYear.add(r.employeeName));
+                    allManagerReviews
+                        .filter(r => r.reviewYear === selectedYear)
+                        .forEach(r => employeesInYear.add(r.employeeName));
+                    
+                    setEmployees(Array.from(employeesInYear).sort());
+                    setSelectedEmployee('');
+                    setAggregatedData(null);
+                }
+            }, [selectedYear, allSelfReviews, allManagerReviews]);
+
+            // When employee is selected, aggregate their reviews
+            useEffect(() => {
+                if (selectedYear && selectedEmployee) {
+                    const selfReview = allSelfReviews.find(
+                        r => r.employeeName === selectedEmployee && r.reviewYear === selectedYear
+                    );
+                    const managerReview = allManagerReviews.find(
+                        r => r.employeeName === selectedEmployee && r.reviewYear === selectedYear
+                    );
+                    const peerReviews = allPeerReviews.filter(
+                        r => r.employeeName === selectedEmployee && r.reviewYear === selectedYear
+                    );
+
+                    const aggregated = aggregateReviews(selfReview, managerReview, peerReviews);
+                    setAggregatedData(aggregated);
+
+                    // Auto-select all comments initially
+                    const comments = [];
+                    if (selfReview) {
+                        if (selfReview.accomplishments) comments.push({ id: 'self-acc', source: 'Self: Accomplishments', text: selfReview.accomplishments });
+                        if (selfReview.greatestImpact) comments.push({ id: 'self-impact', source: 'Self: Greatest Impact', text: selfReview.greatestImpact });
+                        if (selfReview.challenges) comments.push({ id: 'self-challenges', source: 'Self: Challenges', text: selfReview.challenges });
+                        if (selfReview.strengths) comments.push({ id: 'self-strengths', source: 'Self: Strengths', text: selfReview.strengths });
+                        if (selfReview.developmentAreas) comments.push({ id: 'self-dev', source: 'Self: Development Areas', text: selfReview.developmentAreas });
+                        if (selfReview.supportNeeded) comments.push({ id: 'self-support', source: 'Self: Support Needed', text: selfReview.supportNeeded });
+                    }
+                    if (managerReview) {
+                        if (managerReview.strengths) comments.push({ id: 'mgr-strengths', source: 'Manager: Strengths', text: managerReview.strengths });
+                        if (managerReview.greatestImpact) comments.push({ id: 'mgr-impact', source: 'Manager: Greatest Impact', text: managerReview.greatestImpact });
+                        if (managerReview.areasForImprovement) comments.push({ id: 'mgr-areas', source: 'Manager: Areas for Improvement', text: managerReview.areasForImprovement });
+                        if (managerReview.supportNeeded) comments.push({ id: 'mgr-support', source: 'Manager: Support Needed', text: managerReview.supportNeeded });
+                        if (managerReview.additionalComments) comments.push({ id: 'mgr-add', source: 'Manager: Additional Comments', text: managerReview.additionalComments });
+                    }
+                    
+                    peerReviews.forEach((peer, idx) => {
+                        if (peer.whatTheyDoWell) comments.push({ id: `peer-${idx}-well`, source: `Peer ${idx + 1}: What They Do Well`, text: peer.whatTheyDoWell });
+                        if (peer.improvement) comments.push({ id: `peer-${idx}-improve`, source: `Peer ${idx + 1}: Improvement`, text: peer.improvement });
+                        if (peer.additionalComments) comments.push({ id: `peer-${idx}-add`, source: `Peer ${idx + 1}: Additional`, text: peer.additionalComments });
+                    });
+
+                    setSelectedComments(comments);
+                }
+            }, [selectedYear, selectedEmployee, allSelfReviews, allManagerReviews, allPeerReviews]);
+
+            const toggleComment = (commentId) => {
+                setSelectedComments(prev => 
+                    prev.find(c => c.id === commentId)
+                        ? prev.filter(c => c.id !== commentId)
+                        : [...prev, getAllComments().find(c => c.id === commentId)].filter(Boolean)
+                );
+            };
+
+            const getAllComments = () => {
+                if (!aggregatedData) return [];
+                const comments = [];
+                const { self, manager, peers } = aggregatedData;
+                
+                if (self) {
+                    if (self.accomplishments) comments.push({ id: 'self-acc', source: 'Self: Accomplishments', text: self.accomplishments });
+                    if (self.greatestImpact) comments.push({ id: 'self-impact', source: 'Self: Greatest Impact', text: self.greatestImpact });
+                    if (self.challenges) comments.push({ id: 'self-challenges', source: 'Self: Challenges', text: self.challenges });
+                    if (self.strengths) comments.push({ id: 'self-strengths', source: 'Self: Strengths', text: self.strengths });
+                    if (self.developmentAreas) comments.push({ id: 'self-dev', source: 'Self: Development Areas', text: self.developmentAreas });
+                    if (self.supportNeeded) comments.push({ id: 'self-support', source: 'Self: Support Needed', text: self.supportNeeded });
+                }
+                if (manager) {
+                    if (manager.strengths) comments.push({ id: 'mgr-strengths', source: 'Manager: Strengths', text: manager.strengths });
+                    if (manager.greatestImpact) comments.push({ id: 'mgr-impact', source: 'Manager: Greatest Impact', text: manager.greatestImpact });
+                    if (manager.areasForImprovement) comments.push({ id: 'mgr-areas', source: 'Manager: Areas for Improvement', text: manager.areasForImprovement });
+                    if (manager.supportNeeded) comments.push({ id: 'mgr-support', source: 'Manager: Support Needed', text: manager.supportNeeded });
+                    if (manager.additionalComments) comments.push({ id: 'mgr-add', source: 'Manager: Additional Comments', text: manager.additionalComments });
+                }
+                
+                peers.forEach((peer, idx) => {
+                    if (peer.whatTheyDoWell) comments.push({ id: `peer-${idx}-well`, source: `Peer ${idx + 1}: What They Do Well`, text: peer.whatTheyDoWell });
+                    if (peer.improvement) comments.push({ id: `peer-${idx}-improve`, source: `Peer ${idx + 1}: Improvement`, text: peer.improvement });
+                    if (peer.additionalComments) comments.push({ id: `peer-${idx}-add`, source: `Peer ${idx + 1}: Additional`, text: peer.additionalComments });
+                });
+
+                return comments;
+            };
+
+            const handleGenerateDocument = async () => {
+                if (!aggregatedData) return;
+                
+                setLoading(true);
+                setStatusMessage({ type: 'info', text: 'Generating document...' });
+                
+                try {
+                    await generateDocument(selectedEmployee, selectedYear, aggregatedData, selectedComments);
+                    setStatusMessage({ type: 'success', text: 'Document generated successfully!' });
+                } catch (err) {
+                    console.error('Document generation error:', err);
+                    setStatusMessage({ type: 'error', text: 'Failed to generate document.' });
+                } finally {
+                    setLoading(false);
+                    setTimeout(() => setStatusMessage(null), 5000);
+                }
+            };
+
+            if (!isInitialized || (loading && !isSignedIn)) {
+                return (
+                    <div className="container">
+                        <div className="sign-in-section">
+                            <h2>Loading...</h2>
+                            <div className="loading" style={{ margin: '20px auto' }}></div>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (!isSignedIn) {
+                return (
+                    <div className="container">
+                        <div className="header">
+                            <h1>I4EQ Performance Review System</h1>
+                            <p>AI-powered review analysis and document generation</p>
+                        </div>
+                        <div className="sign-in-section">
+                            <h2>Welcome</h2>
+                            <p style={{ marginBottom: '24px', color: '#718096' }}>
+                                Sign in with your Google account to access performance review data
+                            </p>
+                            <button className="sign-in-button" onClick={handleSignIn}>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                                </svg>
+                                Sign in with Google
+                            </button>
+                            {error && <div className="status-message status-error" style={{ marginTop: '16px' }}>{error}</div>}
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="container">
+                    <div className="header">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                                <h1>I4EQ Performance Review System</h1>
+                                <p>AI-powered review analysis and document generation</p>
+                            </div>
+                            <button 
+                                onClick={handleSignOut}
+                                style={{
+                                    background: 'transparent',
+                                    border: '2px solid #e2e8f0',
+                                    padding: '8px 16px',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    color: '#4a5568',
+                                    fontWeight: '500'
+                                }}
+                            >
+                                Sign Out
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="main-panel">
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>Review Year</label>
+                                <select 
+                                    value={selectedYear} 
+                                    onChange={(e) => setSelectedYear(e.target.value)}
+                                    disabled={loading}
+                                >
+                                    <option value="">Select a year...</option>
+                                    {reviewYears.map(year => (
+                                        <option key={year} value={year}>{year}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="form-group">
+                                <label>Employee Name</label>
+                                <select 
+                                    value={selectedEmployee} 
+                                    onChange={(e) => setSelectedEmployee(e.target.value)}
+                                    disabled={!selectedYear || loading}
+                                >
+                                    <option value="">Select an employee...</option>
+                                    {employees.map(name => (
+                                        <option key={name} value={name}>{name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+
+                        {aggregatedData && (
+                            <>
+                                {aggregatedData.selfAwarenessScore < 70 && (
+                                    <div className="alert">
+                                        <h4>⚠️ Self-Awareness Note</h4>
+                                        <p>
+                                            There is a significant gap between self-ratings and manager ratings. 
+                                            Consider discussing perception differences during the review conversation.
+                                        </p>
+                                    </div>
+                                )}
+
+                                <div className="score-cards">
+                                    <div className="score-card">
+                                        <h3>Self-Awareness Score</h3>
+                                        <div className="score">{aggregatedData.selfAwarenessScore.toFixed(0)}</div>
+                                        <div className="comparison">Out of 100</div>
+                                    </div>
+                                    <div className="score-card">
+                                        <h3>Self Average Rating</h3>
+                                        <div className="score">{aggregatedData.selfAvg.toFixed(2)}</div>
+                                        <div className="comparison">Out of 5.0</div>
+                                    </div>
+                                    <div className="score-card">
+                                        <h3>Manager Rating</h3>
+                                        <div className="score">{aggregatedData.managerAvg.toFixed(2)}</div>
+                                        <div className="comparison">Overall rating</div>
+                                    </div>
+                                    <div className="score-card">
+                                        <h3>Peer Reviews</h3>
+                                        <div className="score">{aggregatedData.peers.length}</div>
+                                        <div className="comparison">Total responses</div>
+                                    </div>
+                                </div>
+
+                                <div className="comment-section">
+                                    <h3>Select Comments to Include in Document</h3>
+                                    
+                                    {aggregatedData.self && (
+                                        <div className="comment-category">
+                                            <h4>Self Review</h4>
+                                            {getAllComments().filter(c => c.id.startsWith('self-')).map(comment => (
+                                                <div key={comment.id} className="comment-item">
+                                                    <div className="comment-header">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            className="comment-checkbox"
+                                                            checked={selectedComments.some(c => c.id === comment.id)}
+                                                            onChange={() => toggleComment(comment.id)}
+                                                        />
+                                                        <span className="comment-source">{comment.source}</span>
+                                                    </div>
+                                                    <div className="comment-text">{comment.text}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {aggregatedData.manager && (
+                                        <div className="comment-category">
+                                            <h4>Manager Review</h4>
+                                            {getAllComments().filter(c => c.id.startsWith('mgr-')).map(comment => (
+                                                <div key={comment.id} className="comment-item">
+                                                    <div className="comment-header">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            className="comment-checkbox"
+                                                            checked={selectedComments.some(c => c.id === comment.id)}
+                                                            onChange={() => toggleComment(comment.id)}
+                                                        />
+                                                        <span className="comment-source">{comment.source}</span>
+                                                    </div>
+                                                    <div className="comment-text">{comment.text}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {aggregatedData.peers && aggregatedData.peers.length > 0 && (
+                                        <div className="comment-category">
+                                            <h4>Peer Reviews ({aggregatedData.peers.length} reviews)</h4>
+                                            {getAllComments().filter(c => c.id.startsWith('peer-')).map(comment => (
+                                                <div key={comment.id} className="comment-item">
+                                                    <div className="comment-header">
+                                                        <input 
+                                                            type="checkbox" 
+                                                            className="comment-checkbox"
+                                                            checked={selectedComments.some(c => c.id === comment.id)}
+                                                            onChange={() => toggleComment(comment.id)}
+                                                        />
+                                                        <span className="comment-source">{comment.source}</span>
+                                                    </div>
+                                                    <div className="comment-text">{comment.text}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <button 
+                                    className="generate-button" 
+                                    onClick={handleGenerateDocument}
+                                    disabled={loading || selectedComments.length === 0}
+                                >
+                                    {loading ? 
+                                        <><span className="loading"></span> Generating...</> : 
+                                        'Generate Performance Review Document'
+                                    }
+                                </button>
+
+                                {statusMessage && (
+                                    <div className={`status-message status-${statusMessage.type}`}>
+                                        {statusMessage.text}
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
